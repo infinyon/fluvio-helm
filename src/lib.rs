@@ -67,7 +67,7 @@ impl HelmClient {
     ///
     /// The `opts` are passed to helm as `--set` arguments.
     #[instrument(skip(self, version, opts))]
-    pub(crate) fn install(
+    pub fn install(
         &self,
         namespace: &str,
         name: &str,
@@ -113,7 +113,7 @@ impl HelmClient {
 
     /// Adds a new helm repo with the given chart name and chart location
     #[instrument(skip(self))]
-    pub(crate) fn repo_add(&self, chart: &str, location: &str) -> Result<(), HelmError> {
+    pub fn repo_add(&self, chart: &str, location: &str) -> Result<(), HelmError> {
         Command::new("helm")
             .args(&["repo", "add", chart, location])
             .stdout(Stdio::inherit())
@@ -124,14 +124,14 @@ impl HelmClient {
 
     /// Updates the local helm repository
     #[instrument(skip(self))]
-    pub(crate) fn repo_update(&self) -> Result<(), HelmError> {
+    pub fn repo_update(&self) -> Result<(), HelmError> {
         Command::new("helm").args(&["repo", "update"]).inherit();
         Ok(())
     }
 
     /// Searches the repo for the named helm chart
     #[instrument(skip(self))]
-    pub(crate) fn search_repo(&self, chart: &str, version: &str) -> Result<Vec<Chart>, HelmError> {
+    pub fn search_repo(&self, chart: &str, version: &str) -> Result<Vec<Chart>, HelmError> {
         let output = Command::new("helm")
             .args(&["search", "repo", chart])
             .args(&["--version", version])
@@ -144,7 +144,7 @@ impl HelmClient {
 
     /// Get all the available versions
     #[instrument(skip(self))]
-    pub(crate) fn versions(&self, chart: &str) -> Result<Vec<Chart>, HelmError> {
+    pub fn versions(&self, chart: &str) -> Result<Vec<Chart>, HelmError> {
         let output = Command::new("helm")
             .args(&["search", "repo"])
             .args(&["--versions", chart])
@@ -157,11 +157,7 @@ impl HelmClient {
 
     /// Checks that a given version of a given chart exists in the repo.
     #[instrument(skip(self))]
-    pub(crate) fn chart_version_exists(
-        &self,
-        name: &str,
-        version: &str,
-    ) -> Result<bool, HelmError> {
+    pub fn chart_version_exists(&self, name: &str, version: &str) -> Result<bool, HelmError> {
         let versions = self.search_repo(name, version)?;
         let count = versions
             .iter()
@@ -172,7 +168,7 @@ impl HelmClient {
 
     /// Returns the list of installed charts by name
     #[instrument(skip(self))]
-    pub(crate) fn get_installed_chart_by_name(
+    pub fn get_installed_chart_by_name(
         &self,
         name: &str,
     ) -> Result<Vec<InstalledChart>, HelmError> {
@@ -191,7 +187,7 @@ impl HelmClient {
 
     /// get helm package version
     #[instrument(skip(self))]
-    pub(crate) fn get_helm_version(&self) -> Result<String, HelmError> {
+    pub fn get_helm_version(&self) -> Result<String, HelmError> {
         let helm_version = Command::new("helm")
             .arg("version")
             .arg("--short")
