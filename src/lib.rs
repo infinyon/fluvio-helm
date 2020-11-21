@@ -157,11 +157,7 @@ impl HelmClient {
 
     /// Checks that a given version of a given chart exists in the repo.
     #[instrument(skip(self))]
-    pub fn chart_version_exists(
-        &self,
-        name: &str,
-        version: &str,
-    ) -> Result<bool, HelmError> {
+    pub fn chart_version_exists(&self, name: &str, version: &str) -> Result<bool, HelmError> {
         let versions = self.search_repo(name, version)?;
         let count = versions
             .iter()
