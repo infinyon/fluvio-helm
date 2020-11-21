@@ -124,7 +124,7 @@ impl HelmClient {
 
     /// Updates the local helm repository
     #[instrument(skip(self))]
-    pub(crate) fn repo_update(&self) -> Result<(), HelmError> {
+    pub fn repo_update(&self) -> Result<(), HelmError> {
         Command::new("helm").args(&["repo", "update"]).inherit();
         Ok(())
     }
