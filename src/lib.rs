@@ -1,11 +1,11 @@
-use std::process::{Command, Stdio};
 use serde::Deserialize;
+use std::process::{Command, Stdio};
 use tracing::{instrument, warn};
 
 mod error;
 
-use flv_util::cmd::CommandExt;
 pub use crate::error::HelmError;
+use flv_util::cmd::CommandExt;
 
 /// Client to manage helm operations
 #[derive(Debug)]
@@ -24,8 +24,7 @@ impl HelmClient {
             .map_err(HelmError::HelmNotInstalled)?;
 
         // Convert command output into a string
-        let out_str =
-            String::from_utf8(output.stdout).map_err(HelmError::Utf8Error)?;
+        let out_str = String::from_utf8(output.stdout).map_err(HelmError::Utf8Error)?;
 
         // Check that the version command gives a version.
         // In the future, we can parse the version string and check
@@ -181,8 +180,7 @@ impl HelmClient {
             .arg("--short")
             .output()
             .map_err(HelmError::HelmNotInstalled)?;
-        let version_text = String::from_utf8(helm_version.stdout)
-            .map_err(HelmError::Utf8Error)?;
+        let version_text = String::from_utf8(helm_version.stdout).map_err(HelmError::Utf8Error)?;
         Ok(version_text[1..].trim().to_string())
     }
 }

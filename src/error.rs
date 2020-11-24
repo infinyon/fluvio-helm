@@ -4,7 +4,7 @@ use std::string::FromUtf8Error;
 #[derive(thiserror::Error, Debug)]
 pub enum HelmError {
     #[error(
-    r#"Unable to find 'helm' executable
+        r#"Unable to find 'helm' executable
   Please make sure helm is installed and in your PATH.
   See https://helm.sh/docs/intro/install/ for more help"#
     )]
