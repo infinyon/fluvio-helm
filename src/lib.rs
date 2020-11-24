@@ -1,36 +1,11 @@
-use std::io::Error as IoError;
-use std::process::{Command, Stdio};
-use std::string::FromUtf8Error;
-
-use flv_util::cmd::CommandExt;
 use serde::Deserialize;
-use thiserror::Error;
+use std::process::{Command, Stdio};
 use tracing::{instrument, warn};
 
-#[derive(Error, Debug)]
-pub enum HelmError {
-    #[error(
-        r#"Unable to find 'helm' executable
-  Please make sure helm is installed and in your PATH.
-  See https://helm.sh/docs/intro/install/ for more help"#
-    )]
-    HelmNotInstalled {
-        #[from]
-        source: IoError,
-    },
-    #[error("failed to read helm client version: {0}")]
-    HelmVersionNotFound(String),
-    #[error("failed to parse helm output as UTF8")]
-    Utf8Error {
-        #[from]
-        source: FromUtf8Error,
-    },
-    #[error("failed to parse JSON from helm output")]
-    Serde {
-        #[from]
-        source: serde_json::Error,
-    },
-}
+mod error;
+
+pub use crate::error::HelmError;
+use flv_util::cmd::CommandExt;
 
 /// Client to manage helm operations
 #[derive(Debug)]
@@ -46,11 +21,10 @@ impl HelmClient {
             .arg("version")
             .print()
             .output()
-            .map_err(|source| HelmError::HelmNotInstalled { source })?;
+            .map_err(HelmError::HelmNotInstalled)?;
 
         // Convert command output into a string
-        let out_str =
-            String::from_utf8(output.stdout).map_err(|source| HelmError::Utf8Error { source })?;
+        let out_str = String::from_utf8(output.stdout).map_err(HelmError::Utf8Error)?;
 
         // Check that the version command gives a version.
         // In the future, we can parse the version string and check
@@ -132,27 +106,36 @@ impl HelmClient {
     /// Searches the repo for the named helm chart
     #[instrument(skip(self))]
     pub fn search_repo(&self, chart: &str, version: &str) -> Result<Vec<Chart>, HelmError> {
-        let output = Command::new("helm")
+        let mut command = Command::new("helm");
+        command
             .args(&["search", "repo", chart])
             .args(&["--version", version])
-            .args(&["--output", "json"])
-            .print()
-            .output()?;
+            .args(&["--output", "json"]);
 
-        serde_json::from_slice(&output.stdout).map_err(|source| HelmError::Serde { source })
+        let output = command
+            .print()
+            .output()
+            .map_err(HelmError::HelmNotInstalled)?;
+
+        check_helm_stderr(output.stderr)?;
+        serde_json::from_slice(&output.stdout).map_err(HelmError::Serde)
     }
 
     /// Get all the available versions
     #[instrument(skip(self))]
     pub fn versions(&self, chart: &str) -> Result<Vec<Chart>, HelmError> {
-        let output = Command::new("helm")
+        let mut command = Command::new("helm");
+        command
             .args(&["search", "repo"])
             .args(&["--versions", chart])
-            .args(&["--output", "json", "--devel"])
+            .args(&["--output", "json", "--devel"]);
+        let output = command
             .print()
-            .output()?;
+            .output()
+            .map_err(HelmError::HelmNotInstalled)?;
 
-        serde_json::from_slice(&output.stdout).map_err(|source| HelmError::Serde { source })
+        check_helm_stderr(output.stderr)?;
+        serde_json::from_slice(&output.stdout).map_err(HelmError::Serde)
     }
 
     /// Checks that a given version of a given chart exists in the repo.
@@ -173,16 +156,20 @@ impl HelmClient {
         name: &str,
     ) -> Result<Vec<InstalledChart>, HelmError> {
         let exact_match = format!("^{}$", name);
-        let output = Command::new("helm")
+        let mut command = Command::new("helm");
+        command
             .arg("list")
             .arg("--filter")
             .arg(exact_match)
             .arg("--output")
-            .arg("json")
+            .arg("json");
+        let output = command
             .print()
-            .output()?;
+            .output()
+            .map_err(HelmError::HelmNotInstalled)?;
 
-        serde_json::from_slice(&output.stdout).map_err(|source| HelmError::Serde { source })
+        check_helm_stderr(output.stderr)?;
+        serde_json::from_slice(&output.stdout).map_err(HelmError::Serde)
     }
 
     /// get helm package version
@@ -192,11 +179,24 @@ impl HelmClient {
             .arg("version")
             .arg("--short")
             .output()
-            .map_err(|source| HelmError::HelmNotInstalled { source })?;
-        let version_text = String::from_utf8(helm_version.stdout)
-            .map_err(|source| HelmError::Utf8Error { source })?;
+            .map_err(HelmError::HelmNotInstalled)?;
+        let version_text = String::from_utf8(helm_version.stdout).map_err(HelmError::Utf8Error)?;
         Ok(version_text[1..].trim().to_string())
     }
+}
+
+/// Check for errors in Helm's stderr output
+///
+/// Returns `Ok(())` if everything is fine, or `HelmError` if something is wrong
+fn check_helm_stderr(stderr: Vec<u8>) -> Result<(), HelmError> {
+    if !stderr.is_empty() {
+        let stderr = String::from_utf8(stderr)?;
+        if stderr.contains("Kubernetes cluster unreachable") {
+            return Err(HelmError::FailedToConnect);
+        }
+    }
+
+    Ok(())
 }
 
 /// A representation of a chart definition in a repo.
