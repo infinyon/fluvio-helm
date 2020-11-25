@@ -1,18 +1,15 @@
 [package]
 name = "fluvio-helm"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 license = "Apache-2.0"
 authors = ["Fluvio Contributors <team@fluvio.io>"]
 repository = "https://github.com/infinyon/fluvio-helm"
 description = "Helm wrapper"
 
-
 [lib]
 name = "fluvio_helm"
 path = "src/lib.rs"
-
-
 
 [dependencies]
 tracing = "0.1.19"
@@ -20,4 +17,5 @@ serde = { version = "1.0.115", features = ["derive"] }
 serde_json = "1.0.57"
 thiserror = "1.0.20"
 
+# Fluvio dependencies
 flv-util = "0.5.2"
