@@ -70,9 +70,14 @@ impl HelmClient {
     }
 
     /// Uninstalls specified chart library
-    pub fn uninstall(&self, name: &str, namespace: &str, ignore_not_found: bool) -> Result<(), HelmError> {
+    pub fn uninstall(
+        &self,
+        name: &str,
+        namespace: &str,
+        ignore_not_found: bool,
+    ) -> Result<(), HelmError> {
         if ignore_not_found {
-            let app_charts = self.get_installed_chart_by_name(name,namespace)?;
+            let app_charts = self.get_installed_chart_by_name(name, namespace)?;
             if app_charts.is_empty() {
                 warn!("Chart does not exists, {}", &name);
                 return Ok(());
