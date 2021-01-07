@@ -73,7 +73,7 @@ impl HelmClient {
     pub fn uninstall(
         &self,
         name: &str,
-        namespace: &str,
+        namespace: Option<&str>,
         ignore_not_found: bool,
     ) -> Result<(), HelmError> {
         if ignore_not_found {
@@ -84,9 +84,11 @@ impl HelmClient {
             }
         }
         let mut command = Command::new("helm");
-        command
-            .args(&["uninstall", name])
-            .args(&["--namespace", namespace]);
+        command.args(&["uninstall", name]);
+
+        if let Some(ns) = namespace {
+            command.args(&["--namespace", ns]);
+        }
 
         command.inherit();
         Ok(())
@@ -161,7 +163,7 @@ impl HelmClient {
     pub fn get_installed_chart_by_name(
         &self,
         name: &str,
-        namespace: &str,
+        namespace: Option<&str>,
     ) -> Result<Vec<InstalledChart>, HelmError> {
         let exact_match = format!("^{}$", name);
         let mut command = Command::new("helm");
@@ -169,9 +171,12 @@ impl HelmClient {
             .arg("list")
             .arg("--filter")
             .arg(exact_match)
-            .args(&["--namespace", namespace])
             .arg("--output")
             .arg("json");
+        if let Some(ns) = namespace {
+            command.args(&["--namespace", ns]);
+        }
+
         let output = command
             .print()
             .output()
