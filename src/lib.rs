@@ -1,11 +1,178 @@
+use std::{
+    path::PathBuf,
+    process::{Command, Stdio},
+};
+
 use serde::Deserialize;
-use std::process::{Command, Stdio};
 use tracing::{instrument, warn};
 
 mod error;
 
 pub use crate::error::HelmError;
 use flv_util::cmd::CommandExt;
+
+/// Installer Argument
+#[derive(Debug)]
+pub struct InstallArg {
+    pub name: String,
+    pub chart: String,
+    pub version: Option<String>,
+    pub namespace: Option<String>,
+    pub opts: Vec<(String, String)>,
+    pub values: Vec<PathBuf>,
+    pub develop: bool,
+}
+
+impl InstallArg {
+    pub fn new(name: String, chart: String) -> Self {
+        Self {
+            name,
+            chart,
+            version: None,
+            namespace: None,
+            opts: vec![],
+            values: vec![],
+            develop: false,
+        }
+    }
+
+    /// set chart version
+    pub fn version(&mut self, version: String) -> &mut Self {
+        self.version = Some(version);
+        self
+    }
+
+    /// set namepsace
+    pub fn namespace(&mut self, ns: String) -> &mut Self {
+        self.namespace = Some(ns);
+        self
+    }
+
+    /// reset array of options
+    pub fn opts(&mut self, options: Vec<(String, String)>) -> &mut Self {
+        self.opts = options;
+        self
+    }
+
+    /// set a single option
+    pub fn opt(&mut self, key: String, value: String) -> &mut Self {
+        self.opts.push((key, value));
+        self
+    }
+
+    /// set to use develop
+    pub fn develop(&mut self) -> &mut Self {
+        self.develop = true;
+        self
+    }
+
+    /// set list of values
+    pub fn values(&mut self, values: Vec<PathBuf>) -> &mut Self {
+        self.values = values;
+        self
+    }
+
+    pub fn valu(&mut self, value: PathBuf) -> &mut Self {
+        self.values.push(value);
+        self
+    }
+}
+
+impl Into<Command> for InstallArg {
+    fn into(self) -> Command {
+        let mut command = Command::new("helm");
+        command.args(&["install", &self.name, &self.chart]);
+
+        if let Some(namespace) = &self.namespace {
+            command.args(&["--namespace", namespace]);
+        }
+
+        if self.develop {
+            command.arg("--devel");
+        }
+
+        if let Some(version) = &self.version {
+            command.args(&["--version", version]);
+        }
+
+        for value_path in &self.values {
+            command.arg("--values").arg(value_path);
+        }
+
+        for (key, val) in &self.opts {
+            command.arg("--set").arg(format!("{}={}", key, val));
+        }
+
+        command
+    }
+}
+
+/// Uninstaller Argument
+#[derive(Debug)]
+pub struct UninstallArg {
+    pub release: String,
+    pub namespace: Option<String>,
+    pub ignore_not_found: bool,
+    pub dry_run: bool,
+    pub timeout: Option<String>,
+}
+
+impl UninstallArg {
+    pub fn new(release: String) -> Self {
+        Self {
+            release,
+            namespace: None,
+            ignore_not_found: false,
+            dry_run: false,
+            timeout: None,
+        }
+    }
+
+    /// set namepsace
+    pub fn namespace(&mut self, ns: String) -> &mut Self {
+        self.namespace = Some(ns);
+        self
+    }
+
+    /// set ignore not found
+    pub fn ignore_not_found(&mut self) -> &mut Self {
+        self.ignore_not_found = true;
+        self
+    }
+
+    /// set dry tun
+    pub fn dry_run(&mut self) -> &mut Self {
+        self.dry_run = true;
+        self
+    }
+
+    /// set timeout
+    pub fn timeout(&mut self, timeout: String) -> &mut Self {
+        self.timeout = Some(timeout);
+        self
+    }
+}
+
+impl Into<Command> for UninstallArg {
+    fn into(self) -> Command {
+        let mut command = Command::new("helm");
+        command.args(&["uninstall", &self.release]);
+
+        if let Some(namespace) = &self.namespace {
+            command.args(&["--namespace", namespace]);
+        }
+
+        if self.dry_run {
+            command.arg("--dry-run");
+        }
+
+        for timeout in &self.timeout {
+            command.arg("--timeout").arg(timeout);
+        }
+
+        command
+    }
+}
 
 /// Client to manage helm operations
 #[derive(Debug)]
@@ -39,56 +206,24 @@ impl HelmClient {
 
     /// Installs the given chart under the given name.
     ///
-    /// The `opts` are passed to helm as `--set` arguments.
-    #[instrument(skip(self, version, opts))]
-    pub fn install(
-        &self,
-        namespace: &str,
-        name: &str,
-        chart: &str,
-        version: Option<&str>,
-        opts: &[(&str, &str)],
-    ) -> Result<(), HelmError> {
-        let sets: Vec<_> = opts
-            .iter()
-            .flat_map(|(key, val)| vec!["--set".to_string(), format!("{}={}", key, val)])
-            .collect();
-
-        let mut command = Command::new("helm");
-        command
-            .args(&["install", name, chart])
-            .args(&["--namespace", namespace])
-            .args(&["--devel"])
-            .args(sets);
-
-        if let Some(version) = version {
-            command.args(&["--version", version]);
-        }
-
+    #[instrument(skip(self))]
+    pub fn install(&self, install: InstallArg) -> Result<(), HelmError> {
+        let mut command: Command = install.into();
         command.inherit();
         Ok(())
     }
 
     /// Uninstalls specified chart library
-    pub fn uninstall(
-        &self,
-        name: &str,
-        namespace: Option<&str>,
-        ignore_not_found: bool,
-    ) -> Result<(), HelmError> {
-        if ignore_not_found {
-            let app_charts = self.get_installed_chart_by_name(name, namespace)?;
+    pub fn uninstall(&self, uninstall: UninstallArg) -> Result<(), HelmError> {
+        if uninstall.ignore_not_found {
+            let app_charts = self
+                .get_installed_chart_by_name(&uninstall.release, uninstall.namespace.as_deref())?;
             if app_charts.is_empty() {
-                warn!("Chart does not exists, {}", &name);
+                warn!("Chart does not exists, {}", &uninstall.release);
                 return Ok(());
             }
         }
-        let mut command = Command::new("helm");
-        command.args(&["uninstall", name]);
-
-        if let Some(ns) = namespace {
-            command.args(&["--namespace", ns]);
-        }
+        let mut command: Command = uninstall.into();
 
         command.inherit();
         Ok(())
