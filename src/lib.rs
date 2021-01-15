@@ -87,7 +87,7 @@ impl InstallArg {
 
     pub fn upgrade(&self) -> Command {
         let mut command = Command::new("helm");
-        command.args(&["upgrade", &self.name, &self.chart]);
+        command.args(&["upgrade", "--install", &self.name, &self.chart]);
         self.apply_args(&mut command);
         command
     }
