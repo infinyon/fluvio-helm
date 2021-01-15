@@ -37,37 +37,37 @@ impl InstallArg {
     }
 
     /// set chart version
-    pub fn version(&mut self, version: String) -> &mut Self {
+    pub fn version(mut self, version: String) -> Self {
         self.version = Some(version);
         self
     }
 
     /// set namepsace
-    pub fn namespace(&mut self, ns: String) -> &mut Self {
+    pub fn namespace(mut self, ns: String) -> Self {
         self.namespace = Some(ns);
         self
     }
 
     /// reset array of options
-    pub fn opts(&mut self, options: Vec<(String, String)>) -> &mut Self {
+    pub fn opts(mut self, options: Vec<(String, String)>) -> Self {
         self.opts = options;
         self
     }
 
     /// set a single option
-    pub fn opt(&mut self, key: String, value: String) -> &mut Self {
+    pub fn opt(mut self, key: String, value: String) -> Self {
         self.opts.push((key, value));
         self
     }
 
     /// set to use develop
-    pub fn develop(&mut self) -> &mut Self {
+    pub fn develop(mut self) -> Self {
         self.develop = true;
         self
     }
 
     /// set list of values
-    pub fn values(&mut self, values: Vec<PathBuf>) -> &mut Self {
+    pub fn values(mut self, values: Vec<PathBuf>) -> Self {
         self.values = values;
         self
     }
@@ -129,25 +129,25 @@ impl UninstallArg {
     }
 
     /// set namepsace
-    pub fn namespace(&mut self, ns: String) -> &mut Self {
+    pub fn namespace(mut self, ns: String) -> Self {
         self.namespace = Some(ns);
         self
     }
 
     /// set ignore not found
-    pub fn ignore_not_found(&mut self) -> &mut Self {
+    pub fn ignore_not_found(mut self) -> Self {
         self.ignore_not_found = true;
         self
     }
 
     /// set dry tun
-    pub fn dry_run(&mut self) -> &mut Self {
+    pub fn dry_run(mut self) -> Self {
         self.dry_run = true;
         self
     }
 
     /// set timeout
-    pub fn timeout(&mut self, timeout: String) -> &mut Self {
+    pub fn timeout(mut self, timeout: String) -> Self {
         self.timeout = Some(timeout);
         self
     }
