@@ -24,10 +24,10 @@ pub struct InstallArg {
 }
 
 impl InstallArg {
-    pub fn new(name: String, chart: String) -> Self {
+    pub fn new<N: Into<String>, C: Into<String>>(name: N, chart: C) -> Self {
         Self {
-            name,
-            chart,
+            name: name.into(),
+            chart: chart.into(),
             version: None,
             namespace: None,
             opts: vec![],
@@ -37,14 +37,14 @@ impl InstallArg {
     }
 
     /// set chart version
-    pub fn version(mut self, version: String) -> Self {
-        self.version = Some(version);
+    pub fn version<S: Into<String>>(mut self, version: S) -> Self {
+        self.version = Some(version.into());
         self
     }
 
     /// set namepsace
-    pub fn namespace(mut self, ns: String) -> Self {
-        self.namespace = Some(ns);
+    pub fn namespace<S: Into<String>>(mut self, ns: S) -> Self {
+        self.namespace = Some(ns.into());
         self
     }
 
@@ -55,8 +55,8 @@ impl InstallArg {
     }
 
     /// set a single option
-    pub fn opt(mut self, key: String, value: String) -> Self {
-        self.opts.push((key, value));
+    pub fn opt<K: Into<String>, V: Into<String>>(mut self, key: K, value: V) -> Self {
+        self.opts.push((key.into(), value.into()));
         self
     }
 
@@ -72,9 +72,46 @@ impl InstallArg {
         self
     }
 
-    pub fn valu(&mut self, value: PathBuf) -> &mut Self {
+    /// set one value
+    pub fn value(&mut self, value: PathBuf) -> &mut Self {
         self.values.push(value);
         self
+    }
+
+    pub fn install(&self) -> Command {
+        let mut command = Command::new("helm");
+        command.args(&["install", &self.name, &self.chart]);
+        self.apply_args(&mut command);
+        command
+    }
+
+    pub fn upgrade(&self) -> Command {
+        let mut command = Command::new("helm");
+        command.args(&["upgrade", "--install", &self.name, &self.chart]);
+        self.apply_args(&mut command);
+        command
+    }
+
+    fn apply_args(&self, command: &mut Command) {
+        if let Some(namespace) = &self.namespace {
+            command.args(&["--namespace", namespace]);
+        }
+
+        if self.develop {
+            command.arg("--devel");
+        }
+
+        if let Some(version) = &self.version {
+            command.args(&["--version", version]);
+        }
+
+        for value_path in &self.values {
+            command.arg("--values").arg(value_path);
+        }
+
+        for (key, val) in &self.opts {
+            command.arg("--set").arg(format!("{}={}", key, val));
+        }
     }
 }
 
@@ -207,8 +244,16 @@ impl HelmClient {
     /// Installs the given chart under the given name.
     ///
     #[instrument(skip(self))]
-    pub fn install(&self, install: InstallArg) -> Result<(), HelmError> {
-        let mut command: Command = install.into();
+    pub fn install(&self, args: &InstallArg) -> Result<(), HelmError> {
+        let mut command = args.install();
+        command.inherit();
+        Ok(())
+    }
+
+    /// Upgrades the given chart
+    #[instrument(skip(self))]
+    pub fn upgrade(&self, args: &InstallArg) -> Result<(), HelmError> {
+        let mut command = args.upgrade();
         command.inherit();
         Ok(())
     }
