@@ -7,9 +7,8 @@ use serde::Deserialize;
 use tracing::{instrument, warn};
 
 mod error;
-
 pub use crate::error::HelmError;
-use flv_util::cmd::CommandExt;
+use fluvio_command::CommandExt;
 
 /// Installer Argument
 #[derive(Debug)]
@@ -223,9 +222,7 @@ impl HelmClient {
     pub fn new() -> Result<Self, HelmError> {
         let output = Command::new("helm")
             .arg("version")
-            .print()
-            .output()
-            .map_err(HelmError::HelmNotInstalled)?;
+            .result()?;
 
         // Convert command output into a string
         let out_str = String::from_utf8(output.stdout).map_err(HelmError::Utf8Error)?;
@@ -246,7 +243,9 @@ impl HelmClient {
     #[instrument(skip(self))]
     pub fn install(&self, args: &InstallArg) -> Result<(), HelmError> {
         let mut command = args.install();
-        command.inherit();
+        command
+            .inherit()
+            .result()?;
         Ok(())
     }
 
@@ -254,7 +253,9 @@ impl HelmClient {
     #[instrument(skip(self))]
     pub fn upgrade(&self, args: &InstallArg) -> Result<(), HelmError> {
         let mut command = args.upgrade();
-        command.inherit();
+        command
+            .inherit()
+            .result()?;
         Ok(())
     }
 
@@ -281,14 +282,15 @@ impl HelmClient {
             .args(&["repo", "add", chart, location])
             .stdout(Stdio::inherit())
             .stdout(Stdio::inherit())
-            .inherit();
+            .inherit()
+            .result()?;
         Ok(())
     }
 
     /// Updates the local helm repository
     #[instrument(skip(self))]
     pub fn repo_update(&self) -> Result<(), HelmError> {
-        Command::new("helm").args(&["repo", "update"]).inherit();
+        Command::new("helm").args(&["repo", "update"]).inherit().result()?;
         Ok(())
     }
 
@@ -301,10 +303,7 @@ impl HelmClient {
             .args(&["--version", version])
             .args(&["--output", "json"]);
 
-        let output = command
-            .print()
-            .output()
-            .map_err(HelmError::HelmNotInstalled)?;
+        let output = command.result()?;
 
         check_helm_stderr(output.stderr)?;
         serde_json::from_slice(&output.stdout).map_err(HelmError::Serde)
@@ -318,10 +317,7 @@ impl HelmClient {
             .args(&["search", "repo"])
             .args(&["--versions", chart])
             .args(&["--output", "json", "--devel"]);
-        let output = command
-            .print()
-            .output()
-            .map_err(HelmError::HelmNotInstalled)?;
+        let output = command.result()?;
 
         check_helm_stderr(output.stderr)?;
         serde_json::from_slice(&output.stdout).map_err(HelmError::Serde)
@@ -357,11 +353,7 @@ impl HelmClient {
             command.args(&["--namespace", ns]);
         }
 
-        let output = command
-            .print()
-            .output()
-            .map_err(HelmError::HelmNotInstalled)?;
-
+        let output = command.result()?;
         check_helm_stderr(output.stderr)?;
         serde_json::from_slice(&output.stdout).map_err(HelmError::Serde)
     }

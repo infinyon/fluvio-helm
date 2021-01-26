@@ -7,17 +7,13 @@ authors = ["Fluvio Contributors <team@fluvio.io>"]
 repository = "https://github.com/infinyon/fluvio-helm"
 description = "Helm wrapper"
 
-
 [lib]
 name = "fluvio_helm"
 path = "src/lib.rs"
-
-
 
 [dependencies]
 tracing = "0.1.19"
 serde = { version = "1.0.115", features = ["derive"] }
 serde_json = "1.0.57"
 thiserror = "1.0.20"
-
-flv-util = "0.5.2"
+fluvio-command = { path = "../fluvio/src/command" }
