@@ -1,6 +1,6 @@
+use fluvio_command::CommandError;
 use std::io::Error as IoError;
 use std::string::FromUtf8Error;
-use fluvio_command::CommandError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum HelmError {

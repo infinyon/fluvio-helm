@@ -220,9 +220,7 @@ impl HelmClient {
     ///
     /// This only succeeds if the helm command can be found.
     pub fn new() -> Result<Self, HelmError> {
-        let output = Command::new("helm")
-            .arg("version")
-            .result()?;
+        let output = Command::new("helm").arg("version").result()?;
 
         // Convert command output into a string
         let out_str = String::from_utf8(output.stdout).map_err(HelmError::Utf8Error)?;
@@ -243,9 +241,7 @@ impl HelmClient {
     #[instrument(skip(self))]
     pub fn install(&self, args: &InstallArg) -> Result<(), HelmError> {
         let mut command = args.install();
-        command
-            .inherit()
-            .result()?;
+        command.result()?;
         Ok(())
     }
 
@@ -253,9 +249,7 @@ impl HelmClient {
     #[instrument(skip(self))]
     pub fn upgrade(&self, args: &InstallArg) -> Result<(), HelmError> {
         let mut command = args.upgrade();
-        command
-            .inherit()
-            .result()?;
+        command.result()?;
         Ok(())
     }
 
@@ -270,8 +264,7 @@ impl HelmClient {
             }
         }
         let mut command: Command = uninstall.into();
-
-        command.inherit();
+        command.result()?;
         Ok(())
     }
 
@@ -280,9 +273,6 @@ impl HelmClient {
     pub fn repo_add(&self, chart: &str, location: &str) -> Result<(), HelmError> {
         Command::new("helm")
             .args(&["repo", "add", chart, location])
-            .stdout(Stdio::inherit())
-            .stdout(Stdio::inherit())
-            .inherit()
             .result()?;
         Ok(())
     }
@@ -290,7 +280,7 @@ impl HelmClient {
     /// Updates the local helm repository
     #[instrument(skip(self))]
     pub fn repo_update(&self) -> Result<(), HelmError> {
-        Command::new("helm").args(&["repo", "update"]).inherit().result()?;
+        Command::new("helm").args(&["repo", "update"]).result()?;
         Ok(())
     }
 
