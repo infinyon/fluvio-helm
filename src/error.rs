@@ -1,3 +1,4 @@
+use fluvio_command::CommandError;
 use std::io::Error as IoError;
 use std::string::FromUtf8Error;
 
@@ -17,4 +18,6 @@ pub enum HelmError {
     Utf8Error(#[from] FromUtf8Error),
     #[error("Failed to parse JSON from helm output")]
     Serde(#[from] serde_json::Error),
+    #[error("Failed to execute a command")]
+    Command(#[from] CommandError),
 }
