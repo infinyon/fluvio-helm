@@ -399,13 +399,13 @@ pub struct InstalledChart {
     /// The version of the app this chart installed
     pub app_version: String,
     /// The chart revision
-    revision: String,
+    pub revision: String,
     /// Date/time when the chart was last updated
-    updated: String,
+    pub updated: String,
     /// Status of the installed chart
-    status: String,
+    pub status: String,
     /// The ID of the chart that is installed
-    chart: String,
+    pub chart: String,
 }
 
 #[cfg(test)]
