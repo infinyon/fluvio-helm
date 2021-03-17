@@ -398,7 +398,7 @@ pub struct InstalledChart {
     pub name: String,
     /// The version of the app this chart installed
     pub app_version: String,
-    /// The char revision
+    /// The chart revision
     revision: String,
     /// Date/time when the chart was last updated
     updated: String,
