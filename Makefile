@@ -2,7 +2,7 @@ RUSTV=stable
 
 test-all:
 	cargo build --all-features
-	cargo test --all 
+	cargo test --all
 
 install-fmt:
 	rustup component add rustfmt --toolchain $(RUSTV)
