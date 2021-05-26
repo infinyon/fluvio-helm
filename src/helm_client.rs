@@ -7,6 +7,7 @@ use super::UninstallArg;
 use super::HelmError;
 use super::Chart;
 use super::InstalledChart;
+use super::RepoAddArg;
 
 /// Client to manage helm operations
 #[derive(Debug)]
@@ -72,6 +73,12 @@ impl HelmClient {
         Command::new("helm")
             .args(&["repo", "add", chart, location])
             .result()?;
+        Ok(())
+    }
+
+    pub fn repo_add_with_optionals(&self, optionals: RepoAddArg) -> Result<(), HelmError> {
+        let mut command: Command = optionals.into();
+        command.result()?;
         Ok(())
     }
 
