@@ -8,6 +8,7 @@ use super::HelmError;
 use super::Chart;
 use super::InstalledChart;
 use super::RepoAddArg;
+use super::GetInstalledArg;
 
 /// Client to manage helm operations
 #[derive(Debug)]
@@ -56,7 +57,7 @@ impl HelmClient {
     pub fn uninstall(&self, uninstall: UninstallArg) -> Result<(), HelmError> {
         if uninstall.ignore_not_found {
             let app_charts = self
-                .get_installed_chart_by_name(&uninstall.release, uninstall.namespace.as_deref())?;
+                .get_installed_chart_by_name(&uninstall.release, uninstall.namespace.clone())?;
             if app_charts.is_empty() {
                 warn!("Chart does not exists, {}", &uninstall.release);
                 return Ok(());
@@ -134,7 +135,7 @@ impl HelmClient {
     pub fn get_installed_chart_by_name(
         &self,
         name: &str,
-        namespace: Option<&str>,
+        namespace: Option<String>,
     ) -> Result<Vec<InstalledChart>, HelmError> {
         let exact_match = format!("^{}$", name);
         let mut command = Command::new("helm");
@@ -145,8 +146,17 @@ impl HelmClient {
             .arg("--output")
             .arg("json");
         if let Some(ns) = namespace {
-            command.args(&["--namespace", ns]);
+            command.args(&["--namespace", ns.as_str()]);
         }
+
+        let output = command.result()?;
+        check_helm_stderr(output.stderr)?;
+        serde_json::from_slice(&output.stdout).map_err(HelmError::Serde)
+    }
+
+    #[instrument(skip(self))]
+    pub fn list_installed(&self, args: GetInstalledArg) -> Result<Vec<InstalledChart>, HelmError> {
+        let mut command: Command = args.into();
 
         let output = command.result()?;
         check_helm_stderr(output.stderr)?;

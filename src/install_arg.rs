@@ -130,6 +130,7 @@ impl Into<Command> for InstallArg {
             command.arg("--set").arg(format!("{}={}", key, val));
         }
 
+        println!("command: {:?}", command);
         command
     }
 }

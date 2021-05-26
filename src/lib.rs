@@ -5,6 +5,7 @@ mod helm_client;
 mod chart;
 mod installed_chart;
 mod repo_add_optionals;
+mod get_installed_arg;
 
 pub use crate::error::HelmError;
 
@@ -14,6 +15,7 @@ pub use chart::Chart;
 pub use installed_chart::InstalledChart;
 pub use helm_client::HelmClient;
 pub use repo_add_optionals::RepoAddArg;
+pub use get_installed_arg::GetInstalledArg;
 
 
 #[cfg(test)]
