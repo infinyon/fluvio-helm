@@ -1,6 +1,6 @@
 mod error;
 mod chart_pull_arg;
-mod export_arg;
+mod chart_export_arg;
 mod install_arg;
 mod uninstall_arg;
 mod helm_client;
@@ -12,7 +12,7 @@ mod get_installed_arg;
 pub use crate::error::HelmError;
 
 pub use chart_pull_arg::ChartPullArg;
-pub use export_arg::ExportArg;
+pub use chart_export_arg::ChartExportArg;
 pub use install_arg::InstallArg;
 pub use uninstall_arg::UninstallArg;
 pub use chart::Chart;

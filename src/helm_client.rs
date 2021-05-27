@@ -3,7 +3,7 @@ use fluvio_command::CommandExt;
 use tracing::{instrument, warn};
 
 use super::ChartPullArg;
-use super::ExportArg;
+use super::ChartExportArg;
 use super::InstallArg;
 use super::UninstallArg;
 use super::HelmError;
@@ -48,7 +48,7 @@ impl HelmClient {
 
     /// Export a chart stored in local registry cache
     #[instrument(skip(self))]
-    pub fn export(&self, args: ExportArg) -> Result<(), HelmError> {
+    pub fn export(&self, args: ChartExportArg) -> Result<(), HelmError> {
         let mut command: Command = args.into();
         command.result()?;
         Ok(())
