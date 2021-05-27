@@ -1,4 +1,5 @@
 mod error;
+mod pull_arg;
 mod install_arg;
 mod uninstall_arg;
 mod helm_client;
@@ -9,6 +10,7 @@ mod get_installed_arg;
 
 pub use crate::error::HelmError;
 
+pub use pull_arg::PullArg;
 pub use install_arg::InstallArg;
 pub use uninstall_arg::UninstallArg;
 pub use chart::Chart;

@@ -2,6 +2,7 @@ use std::process::Command;
 use fluvio_command::CommandExt;
 use tracing::{instrument, warn};
 
+use super::PullArg;
 use super::InstallArg;
 use super::UninstallArg;
 use super::HelmError;
@@ -34,6 +35,14 @@ impl HelmClient {
 
         // If checks succeed, create Helm client
         Ok(Self {})
+    }
+
+    /// Pulls an existing helm repo
+    #[instrument(skip(self))]
+    pub fn pull(&self, args: PullArg) -> Result<(), HelmError> {
+        let mut command: Command = args.into();
+        command.result()?;
+        Ok(())
     }
 
     /// Installs the given chart under the given name.
