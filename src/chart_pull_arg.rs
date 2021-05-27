@@ -2,12 +2,12 @@ use serde::{Deserialize, Serialize};
 use std::process::Command;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct PullArg {
+pub struct ChartPullArg {
     pub chart: String,
     pub version: String,
 }
 
-impl Into<Command> for PullArg {
+impl Into<Command> for ChartPullArg {
     fn into(self) -> Command {
         let mut command = Command::new("helm");
         command.args(&["chart"]);

@@ -2,7 +2,7 @@ use std::process::Command;
 use fluvio_command::CommandExt;
 use tracing::{instrument, warn};
 
-use super::PullArg;
+use super::ChartPullArg;
 use super::ExportArg;
 use super::InstallArg;
 use super::UninstallArg;
@@ -38,9 +38,9 @@ impl HelmClient {
         Ok(Self {})
     }
 
-    /// Pulls an existing helm repo
+    /// Download a chart from a remote registry
     #[instrument(skip(self))]
-    pub fn pull(&self, args: PullArg) -> Result<(), HelmError> {
+    pub fn chart_pull(&self, args: ChartPullArg) -> Result<(), HelmError> {
         let mut command: Command = args.into();
         command.result()?;
         Ok(())
