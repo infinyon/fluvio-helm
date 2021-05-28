@@ -91,6 +91,7 @@ impl HelmClient {
     pub fn repo_add(&self, chart: &str, location: &str) -> Result<(), HelmError> {
         Command::new("helm")
             .args(&["repo", "add", chart, location])
+            .args(&["--output", "json"])
             .result()?;
         Ok(())
     }
@@ -104,7 +105,10 @@ impl HelmClient {
     /// Updates the local helm repository
     #[instrument(skip(self))]
     pub fn repo_update(&self) -> Result<(), HelmError> {
-        Command::new("helm").args(&["repo", "update"]).result()?;
+        Command::new("helm")
+        .args(&["repo", "update"])
+        .args(&["--output", "json"])
+        .result()?;
         Ok(())
     }
 
@@ -161,8 +165,7 @@ impl HelmClient {
             .arg("list")
             .arg("--filter")
             .arg(exact_match)
-            .arg("--output")
-            .arg("json");
+            .args(&["--output", "json"]);
         if let Some(ns) = namespace {
             command.args(&["--namespace", ns.as_str()]);
         }
@@ -187,6 +190,7 @@ impl HelmClient {
         let helm_version = Command::new("helm")
             .arg("version")
             .arg("--short")
+            .args(&["--output", "json"])
             .output()
             .map_err(HelmError::HelmNotInstalled)?;
         let version_text = String::from_utf8(helm_version.stdout).map_err(HelmError::Utf8Error)?;

@@ -72,6 +72,7 @@ impl Into<Command> for RepoAddArg {
         let mut command = Command::new("helm");
 
         command.args(&["repo", "add", self.chart.as_str(), self.location.as_str()]);
+        command.args(&["--output", "json"]);
 
         if let Some(force_update) = &self.force_update {
             if *force_update == true {

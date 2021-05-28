@@ -27,7 +27,7 @@ impl Into<Command> for GetInstalledArg {
         let mut command = Command::new("helm");
         command.args(&["list"]);
         command.args(&["--output", "json"]);
-        
+
         if let Some(all) = &self.all {
             if *all == true {
                 command.args(&["--all"]);

@@ -11,11 +11,8 @@ pub struct ChartExportArg {
 impl Into<Command> for ChartExportArg {
     fn into(self) -> Command {
         let mut command = Command::new("helm");
-        command.args(&["chart"]);
-        command.args(&["export"]);
-
+        command.args(&["chart", "export"]);
         command.args(&[format!("{}:{}", &self.chart, &self.version)]);
-
         command.arg("--destination").arg(self.destination);
 
         command

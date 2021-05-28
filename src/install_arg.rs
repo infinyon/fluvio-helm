@@ -78,6 +78,7 @@ impl InstallArg {
     pub fn upgrade(&self) -> Command {
         let mut command = Command::new("helm");
         command.args(&["upgrade", "--install", &self.name, &self.chart]);
+        command.args(&["--output", "json"]);
         self.apply_args(&mut command);
         command
     }
@@ -109,6 +110,7 @@ impl Into<Command> for InstallArg {
     fn into(self) -> Command {
         let mut command = Command::new("helm");
         command.args(&["install", &self.name, &self.chart]);
+        command.args(&["--output", "json"]);
 
         if let Some(namespace) = &self.namespace {
             command.args(&["--namespace", namespace]);
@@ -130,7 +132,6 @@ impl Into<Command> for InstallArg {
             command.arg("--set").arg(format!("{}={}", key, val));
         }
 
-        println!("command: {:?}", command);
         command
     }
 }

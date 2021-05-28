@@ -9,11 +9,12 @@ pub struct ChartPullArg {
 
 impl Into<Command> for ChartPullArg {
     fn into(self) -> Command {
-        let mut command = Command::new("helm");
-        command.args(&["chart"]);
-        command.args(&["pull"]);
+        let chart_with_version = format!("{}:{}", &self.chart, &self.version);
 
-        command.args(&[format!("{}:{}", &self.chart, &self.version)]);
+        let mut command = Command::new("helm");
+        command
+            .args(&["chart", "pull"])
+            .args(&[chart_with_version]);
 
         command
     }
