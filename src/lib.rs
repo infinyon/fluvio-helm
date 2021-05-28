@@ -1,4 +1,5 @@
 mod error;
+mod registry_login_arg;
 mod chart_pull_arg;
 mod chart_export_arg;
 mod install_arg;
@@ -11,6 +12,7 @@ mod get_installed_arg;
 
 pub use crate::error::HelmError;
 
+pub use registry_login_arg::RegistryLoginArg;
 pub use chart_pull_arg::ChartPullArg;
 pub use chart_export_arg::ChartExportArg;
 pub use install_arg::InstallArg;

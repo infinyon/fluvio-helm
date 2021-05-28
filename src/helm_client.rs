@@ -2,6 +2,7 @@ use std::process::Command;
 use fluvio_command::CommandExt;
 use tracing::{instrument, warn};
 
+use super::RegistryLoginArg;
 use super::ChartPullArg;
 use super::ChartExportArg;
 use super::InstallArg;
@@ -36,6 +37,12 @@ impl HelmClient {
 
         // If checks succeed, create Helm client
         Ok(Self {})
+    }
+
+    pub fn registry(&self, args: RegistryLoginArg) -> Result<(), HelmError> {
+        let mut command: Command = args.into();
+        command.result()?;
+        Ok(())
     }
 
     /// Download a chart from a remote registry
