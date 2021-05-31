@@ -9,7 +9,7 @@ pub struct InstallArg {
     pub version: Option<String>,
     pub namespace: Option<String>,
     pub opts: Vec<(String, String)>,
-    pub values: Vec<PathBuf>,
+    pub values: Option<Vec<PathBuf>>,
     pub develop: bool,
 }
 
@@ -21,7 +21,7 @@ impl InstallArg {
             version: None,
             namespace: None,
             opts: vec![],
-            values: vec![],
+            values: None,
             develop: false,
         }
     }
@@ -57,14 +57,17 @@ impl InstallArg {
     }
 
     /// set list of values
-    pub fn values(mut self, values: Vec<PathBuf>) -> Self {
+    pub fn values(mut self, values: Option<Vec<PathBuf>>) -> Self {
         self.values = values;
         self
     }
 
     /// set one value
     pub fn value(&mut self, value: PathBuf) -> &mut Self {
-        self.values.push(value);
+        if self.values.is_none() {
+            self.values = Some(vec![]);
+        }
+        self.values.as_mut().unwrap().push(value);
         self
     }
 
@@ -96,8 +99,10 @@ impl InstallArg {
             command.args(&["--version", version]);
         }
 
-        for value_path in &self.values {
-            command.arg("--values").arg(value_path);
+        if let Some(values) = &self.values {
+            for value_path in values {
+                command.arg("--values").arg(value_path);
+            }
         }
 
         for (key, val) in &self.opts {
@@ -124,8 +129,10 @@ impl Into<Command> for InstallArg {
             command.args(&["--version", version]);
         }
 
-        for value_path in &self.values {
-            command.arg("--values").arg(value_path);
+        if let Some(values) = &self.values {
+            for value_path in values {
+                command.arg("--values").arg(value_path);
+            }
         }
 
         for (key, val) in &self.opts {
