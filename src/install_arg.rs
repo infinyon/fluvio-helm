@@ -106,7 +106,7 @@ impl InstallArg {
         }
 
         for (key, val) in &self.opts {
-            command.args(&[format!("--set {}",key), val.to_string()]);
+            command.arg("--set").arg(format!(r#"{}="{}""#, key, val));
         }
     }
 }
