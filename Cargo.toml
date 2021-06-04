@@ -17,3 +17,4 @@ serde = { version = "1.0.115", features = ["derive"] }
 serde_json = "1.0.57"
 thiserror = "1.0.20"
 fluvio-command = "0.2.0"
+shell-words = "0.1.0"

@@ -136,7 +136,7 @@ impl Into<Command> for InstallArg {
         }
 
         for (key, val) in &self.opts {
-            command.arg("--set").arg(format!("{}={}", key, val));
+            command.arg("--set").arg(format!("{}={}", key, shell_words::quote(val)));
         }
 
         command
