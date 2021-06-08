@@ -18,6 +18,6 @@ pub enum HelmError {
     Utf8Error(#[from] FromUtf8Error),
     #[error("Failed to parse JSON from helm output")]
     Serde(#[from] serde_json::Error),
-    #[error("Failed to execute a command")]
+    #[error("Failed to execute command: \"{}\"\n{}", .0.command, .0.source)]
     Command(#[from] CommandError),
 }
