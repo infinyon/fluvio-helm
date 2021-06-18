@@ -337,8 +337,15 @@ impl HelmClient {
             .arg(exact_match)
             .arg("--output")
             .arg("json");
-        if let Some(ns) = namespace {
-            command.args(&["--namespace", ns]);
+
+        match namespace {
+            Some(ns) => {
+                command.args(&["--namespace", ns]);
+            }
+            None => {
+                // Search all namespaces
+                command.args(&["-A"]);
+            }
         }
 
         let output = command.result()?;
