@@ -112,28 +112,28 @@ impl InstallArg {
     }
 }
 
-impl Into<Command> for InstallArg {
-    fn into(self) -> Command {
+impl From<InstallArg> for Command {
+    fn from(arg: InstallArg) -> Self {
         let mut command = Command::new("helm");
-        command.args(&["install", &self.name, &self.chart]);
+        command.args(&["install", &arg.name, &arg.chart]);
 
-        if let Some(namespace) = &self.namespace {
+        if let Some(namespace) = &arg.namespace {
             command.args(&["--namespace", namespace]);
         }
 
-        if self.develop {
+        if arg.develop {
             command.arg("--devel");
         }
 
-        if let Some(version) = &self.version {
+        if let Some(version) = &arg.version {
             command.args(&["--version", version]);
         }
 
-        for value_path in &self.values {
+        for value_path in &arg.values {
             command.arg("--values").arg(value_path);
         }
 
-        for (key, val) in &self.opts {
+        for (key, val) in &arg.opts {
             command.arg("--set").arg(format!("{}={}", key, val));
         }
 
@@ -187,20 +187,20 @@ impl UninstallArg {
     }
 }
 
-impl Into<Command> for UninstallArg {
-    fn into(self) -> Command {
+impl From<UninstallArg> for Command {
+    fn from(arg: UninstallArg) -> Self {
         let mut command = Command::new("helm");
-        command.args(&["uninstall", &self.release]);
+        command.args(&["uninstall", &arg.release]);
 
-        if let Some(namespace) = &self.namespace {
+        if let Some(namespace) = &arg.namespace {
             command.args(&["--namespace", namespace]);
         }
 
-        if self.dry_run {
+        if arg.dry_run {
             command.arg("--dry-run");
         }
 
-        for timeout in &self.timeout {
+        for timeout in &arg.timeout {
             command.arg("--timeout").arg(timeout);
         }
 
