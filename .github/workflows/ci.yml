@@ -2,14 +2,15 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - staging
+      - trying
   pull_request:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
- 
-  check_clippy:
+  clippy:
+    name: Clippy
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -24,8 +25,9 @@ jobs:
           override: true
       - name: check clippy
         run: make check-clippy RUSTV=${{ matrix.rust }}
-  check_fmt:
-    name: check cargo fmt
+
+  rustfmt:
+    name: Rustfmt
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -57,3 +59,10 @@ jobs:
           override: true
       - name: Run unit tests
         run:  make test-all
+
+  done:
+    name: "Done!"
+    needs: [clippy, rustfmt, unit_test]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Done!"
