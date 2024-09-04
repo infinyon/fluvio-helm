@@ -433,7 +433,8 @@ mod tests {
         let installed_charts: Vec<InstalledChart> =
             serde_json::from_slice(JSON_RESPONSE.as_bytes()).expect("can not parse json");
         assert_eq!(installed_charts.len(), 1);
-        let test_chart = installed_charts.first()
+        let test_chart = installed_charts
+            .first()
             .expect("can not grab the first result");
         assert_eq!(test_chart.name, "test_chart");
         assert_eq!(test_chart.chart, "test_chart-1.2.32-rc2");
