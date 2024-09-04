@@ -371,7 +371,7 @@ impl HelmClient {
 /// Returns a sanitized version text parseable by the semver crate
 fn sanitize_helm_version_string(version_text: &str) -> String {
     // Helm version strings may come with leading 'v' or without. Strip it, if it exists.
-    version_text.trim_start_matches('v').trim().to_string()
+    version_text.trim().trim_start_matches('v').to_string()
 }
 
 /// Check for errors in Helm's stderr output
