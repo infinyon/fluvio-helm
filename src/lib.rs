@@ -443,8 +443,14 @@ mod tests {
     #[test]
     fn test_sanitize_version_string() {
         // As reported by most (?) helm versions
-        assert_eq!(&sanitize_helm_version_string("v3.15.4+gfa9efb0"), "3.15.4+gfa9efb0");
+        assert_eq!(
+            &sanitize_helm_version_string("v3.15.4+gfa9efb0"),
+            "3.15.4+gfa9efb0"
+        );
         // As reported by helm on Fedora 40
-        assert_eq!(&sanitize_helm_version_string("3.15.4+gfa9efb0"), "3.15.4+gfa9efb0");
+        assert_eq!(
+            &sanitize_helm_version_string("3.15.4+gfa9efb0"),
+            "3.15.4+gfa9efb0"
+        );
     }
 }
