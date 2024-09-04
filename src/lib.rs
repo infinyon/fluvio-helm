@@ -362,8 +362,16 @@ impl HelmClient {
             .output()
             .map_err(HelmError::HelmNotInstalled)?;
         let version_text = String::from_utf8(helm_version.stdout).map_err(HelmError::Utf8Error)?;
-        Ok(version_text[1..].trim().to_string())
+        Ok(sanitize_helm_version_string(&version_text))
     }
+}
+
+/// Sanitize the version string returned by helm
+///
+/// Returns a sanitized version text parseable by the semver crate
+fn sanitize_helm_version_string(version_text: &str) -> String {
+    // Helm version strings may come with leading 'v' or without. Strip it, if it exists.
+    version_text.trim_start_matches('v').trim().to_string()
 }
 
 /// Check for errors in Helm's stderr output
@@ -430,5 +438,13 @@ mod tests {
             .expect("can not grab the first result");
         assert_eq!(test_chart.name, "test_chart");
         assert_eq!(test_chart.chart, "test_chart-1.2.32-rc2");
+    }
+
+    #[test]
+    fn test_sanitize_version_string() {
+        // As reported by most (?) helm versions
+        assert_eq!(&sanitize_helm_version_string("v3.15.4+gfa9efb0"), "3.15.4+gfa9efb0");
+        // As reported by helm on Fedora 40
+        assert_eq!(&sanitize_helm_version_string("3.15.4+gfa9efb0"), "3.15.4+gfa9efb0");
     }
 }
