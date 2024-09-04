@@ -77,21 +77,21 @@ impl InstallArg {
 
     pub fn install(&self) -> Command {
         let mut command = Command::new("helm");
-        command.args(&["install", &self.name, &self.chart]);
+        command.args(["install", &self.name, &self.chart]);
         self.apply_args(&mut command);
         command
     }
 
     pub fn upgrade(&self) -> Command {
         let mut command = Command::new("helm");
-        command.args(&["upgrade", "--install", &self.name, &self.chart]);
+        command.args(["upgrade", "--install", &self.name, &self.chart]);
         self.apply_args(&mut command);
         command
     }
 
     fn apply_args(&self, command: &mut Command) {
         if let Some(namespace) = &self.namespace {
-            command.args(&["--namespace", namespace]);
+            command.args(["--namespace", namespace]);
         }
 
         if self.develop {
@@ -99,7 +99,7 @@ impl InstallArg {
         }
 
         if let Some(version) = &self.version {
-            command.args(&["--version", version]);
+            command.args(["--version", version]);
         }
 
         for value_path in &self.values {
@@ -115,10 +115,10 @@ impl InstallArg {
 impl From<InstallArg> for Command {
     fn from(arg: InstallArg) -> Self {
         let mut command = Command::new("helm");
-        command.args(&["install", &arg.name, &arg.chart]);
+        command.args(["install", &arg.name, &arg.chart]);
 
         if let Some(namespace) = &arg.namespace {
-            command.args(&["--namespace", namespace]);
+            command.args(["--namespace", namespace]);
         }
 
         if arg.develop {
@@ -126,7 +126,7 @@ impl From<InstallArg> for Command {
         }
 
         if let Some(version) = &arg.version {
-            command.args(&["--version", version]);
+            command.args(["--version", version]);
         }
 
         for value_path in &arg.values {
@@ -190,17 +190,17 @@ impl UninstallArg {
 impl From<UninstallArg> for Command {
     fn from(arg: UninstallArg) -> Self {
         let mut command = Command::new("helm");
-        command.args(&["uninstall", &arg.release]);
+        command.args(["uninstall", &arg.release]);
 
         if let Some(namespace) = &arg.namespace {
-            command.args(&["--namespace", namespace]);
+            command.args(["--namespace", namespace]);
         }
 
         if arg.dry_run {
             command.arg("--dry-run");
         }
 
-        for timeout in &arg.timeout {
+        if let Some(timeout) = arg.timeout {
             command.arg("--timeout").arg(timeout);
         }
 
@@ -270,7 +270,7 @@ impl HelmClient {
     #[instrument(skip(self))]
     pub fn repo_add(&self, chart: &str, location: &str) -> Result<(), HelmError> {
         Command::new("helm")
-            .args(&["repo", "add", chart, location])
+            .args(["repo", "add", chart, location])
             .result()?;
         Ok(())
     }
@@ -278,7 +278,7 @@ impl HelmClient {
     /// Updates the local helm repository
     #[instrument(skip(self))]
     pub fn repo_update(&self) -> Result<(), HelmError> {
-        Command::new("helm").args(&["repo", "update"]).result()?;
+        Command::new("helm").args(["repo", "update"]).result()?;
         Ok(())
     }
 
@@ -287,9 +287,9 @@ impl HelmClient {
     pub fn search_repo(&self, chart: &str, version: &str) -> Result<Vec<Chart>, HelmError> {
         let mut command = Command::new("helm");
         command
-            .args(&["search", "repo", chart])
-            .args(&["--version", version])
-            .args(&["--output", "json"]);
+            .args(["search", "repo", chart])
+            .args(["--version", version])
+            .args(["--output", "json"]);
 
         let output = command.result()?;
 
@@ -302,9 +302,9 @@ impl HelmClient {
     pub fn versions(&self, chart: &str) -> Result<Vec<Chart>, HelmError> {
         let mut command = Command::new("helm");
         command
-            .args(&["search", "repo"])
-            .args(&["--versions", chart])
-            .args(&["--output", "json", "--devel"]);
+            .args(["search", "repo"])
+            .args(["--versions", chart])
+            .args(["--output", "json", "--devel"]);
         let output = command.result()?;
 
         check_helm_stderr(output.stderr)?;
@@ -340,11 +340,11 @@ impl HelmClient {
 
         match namespace {
             Some(ns) => {
-                command.args(&["--namespace", ns]);
+                command.args(["--namespace", ns]);
             }
             None => {
                 // Search all namespaces
-                command.args(&["-A"]);
+                command.args(["-A"]);
             }
         }
 
@@ -433,8 +433,7 @@ mod tests {
         let installed_charts: Vec<InstalledChart> =
             serde_json::from_slice(JSON_RESPONSE.as_bytes()).expect("can not parse json");
         assert_eq!(installed_charts.len(), 1);
-        let test_chart = installed_charts
-            .get(0)
+        let test_chart = installed_charts.first()
             .expect("can not grab the first result");
         assert_eq!(test_chart.name, "test_chart");
         assert_eq!(test_chart.chart, "test_chart-1.2.32-rc2");
